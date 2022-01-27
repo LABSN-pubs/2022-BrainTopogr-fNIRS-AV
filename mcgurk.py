@@ -234,11 +234,11 @@ for subject in subjects:
             cha['run'] = run
             # add good/badness of the channel
             cha['good'] = ~np.in1d(cha['ch_name'], bads)
-            subj_cha = subj_cha.append(cha)
+            subj_cha = pd.concat([subj_cha, cha], ignore_index=True)
             del raw_h
         subj_cha.to_hdf(fname, 'subj_cha', mode='w')
         print(f'{time.time() - t0:0.1f} sec')
-    df_cha = df_cha.append(pd.read_hdf(fname))
+    df_cha = pd.concat([df_cha, pd.read_hdf(fname)], ignore_index=True)
 df_cha.reset_index(drop=True, inplace=True)
 
 # block averages
@@ -535,13 +535,12 @@ def _ttest_1samp_df(ch_summary, conditions):
             dof = this.size - 1
             t, p = stats.ttest_1samp(this, 0)
             assert np.isfinite(t).all()
-            ch_model_df = ch_model_df.append(
+            ch_model_df = pd.concat([ch_model_df, pd.DataFrame(
                 {'Condition': condition,
                  'ch_name': ch_name,
                  'P>|z|': p,
                  't': t,
-                 'dof': dof},
-                ignore_index=True)
+                 'dof': dof}, index=[0])], ignore_index=True)
     return ch_model_df
 
 

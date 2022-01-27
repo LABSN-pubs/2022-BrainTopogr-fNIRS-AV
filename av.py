@@ -46,7 +46,7 @@ filt_kwargs = dict(
     l_freq=0.02, l_trans_bandwidth=0.02,
     h_freq=0.2, h_trans_bandwidth=0.02)
 
-run_h = True  # regenerate HbO/HbR
+run_h = False  # regenerate HbO/HbR
 
 n_jobs = 4  # for GLM
 
@@ -257,11 +257,11 @@ for subject in subjects:
             cha['run'] = run
             # add good/badness of the channel
             cha['good'] = ~np.in1d(cha['ch_name'], bads)
-            subj_cha = subj_cha.append(cha)
+            subj_cha = pd.concat([subj_cha, cha], ignore_index=True)
             del raw_h
         subj_cha.to_hdf(fname, 'subj_cha', mode='w')
         print(f'{time.time() - t0:0.1f} sec')
-    df_cha = df_cha.append(pd.read_hdf(fname))
+    df_cha = pd.concat([df_cha, pd.read_hdf(fname)], ignore_index=True)
 df_cha.reset_index(drop=True, inplace=True)
 
 # block averages
