@@ -46,7 +46,7 @@ filt_kwargs = dict(
     l_freq=0.02, l_trans_bandwidth=0.02,
     h_freq=0.2, h_trans_bandwidth=0.02)
 
-run_h = False  # regenerate HbO/HbR
+run_h = True  # regenerate HbO/HbR
 
 n_jobs = 4  # for GLM
 
