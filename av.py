@@ -54,8 +54,11 @@ raw_path = 'data'
 behavioral_path = op.join('data', 'NIRx behavioral data.xlsx')
 proc_path = 'processed'
 results_path = 'results'
+subjects_dir = 'subjects'
 os.makedirs(results_path, exist_ok=True)
 os.makedirs(proc_path, exist_ok=True)
+os.makedirs(subjects_dir, exist_ok=True)
+mne.datasets.fetch_fsaverage(subjects_dir=subjects_dir, verbose=True)
 use = None
 all_sci = list()
 for subject in subjects[0 if run_h else subjects.index(plot_subject):]:
@@ -553,14 +556,13 @@ for ch in evoked.info['chs']:
     assert ch['coord_frame'] == mne.io.constants.FIFF.FIFFV_COORD_HEAD
 stc = mne.stc_near_sensors(
     evoked, trans='fsaverage', subject='fsaverage', mode='weighted',
-    distance=0.02, project=True, picks=picks)
+    distance=0.02, project=True, picks=picks, subjects_dir=subjects_dir)
 # Split channel indices by left lat, posterior, right lat:
 # num_map = {name: str(ii) for ii, name in enumerate(evoked.ch_names)}
 # evoked.copy().rename_channels(num_map).plot_sensors(show_names=True)
 view_map = [np.arange(19), np.arange(19, 33), np.arange(33, 52)]
-surf = mne.read_bem_surfaces(
-    mne.utils.get_subjects_dir() +
-    '/fsaverage/bem/fsaverage-5120-5120-5120-bem.fif', s_id=1)  # brain
+surf = mne.read_bem_surfaces(  # brain surface
+    f'{subjects_dir}/fsaverage/bem/fsaverage-5120-5120-5120-bem.fif', s_id=1)
 for ci, condition in enumerate(conditions):
     this_sig = [v[0] // 2 for v in sig_chs[condition]]
     assert np.in1d(this_sig, np.arange(52)).all()
@@ -582,7 +584,7 @@ for ci, condition in enumerate(conditions):
                      brain_kwargs=dict(units='m'),
                      add_data_kwargs=dict(colorbar_kwargs=dict(
                          title_font_size=24, label_font_size=24, n_labels=5,
-                         title='z score')))
+                         title='z score')), subjects_dir=subjects_dir)
     brain.show_view('lat', hemi='lh', row=0, col=0)
     brain.show_view(azimuth=270, elevation=90, row=0, col=1)
     # significant channel white text overlay
