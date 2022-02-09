@@ -9,6 +9,7 @@ import numpy as np
 from scipy import signal, stats
 import matplotlib.pyplot as plt
 import openpyxl
+import pooch
 
 import pandas as pd
 with warnings.catch_warnings(record=True):
@@ -615,3 +616,19 @@ for ci, condition in enumerate(conditions):
     plt.imsave(
         op.join(results_path, f'brain_{exp_name}_{condition}.png'), pl.image)
     brain.close()
+
+# fOLD specificity
+fold_files = ['10-10.xls', '10-5.xls']
+for fname in fold_files:
+    if not op.isfile(fname):
+        pooch.retrieve(f'https://github.com/nirx/fOLD-public/raw/master/Supplementary/{fname}', None, fname, path=os.getcwd())
+specs = mne_nirs.io.fold_channel_specificity(use['h'], fold_files, 'Brodmann')[::2]
+for si, spec in enumerate(specs, 1):
+    spec['Channel'] = si
+    spec['negspec'] = -spec['Specificity']
+specs = pd.concat(specs, ignore_index=True)
+specs.drop(['Source', 'Detector', 'Distance (mm)', 'brainSens', 'X (mm)', 'Y (mm)', 'Z (mm)'], axis=1, inplace=True)
+specs.sort_values(['Channel', 'negspec'], inplace=True)
+specs.drop('negspec', axis=1, inplace=True)
+specs.reset_index(inplace=True, drop=True)
+specs.to_csv(op.join(results_path, 'specificity.csv'), index=False)
