@@ -621,13 +621,16 @@ for ci, condition in enumerate(conditions):
 fold_files = ['10-10.xls', '10-5.xls']
 for fname in fold_files:
     if not op.isfile(fname):
-        pooch.retrieve(f'https://github.com/nirx/fOLD-public/raw/master/Supplementary/{fname}', None, fname, path=os.getcwd())
-specs = mne_nirs.io.fold_channel_specificity(use['h'], fold_files, 'Brodmann')[::2]
+        pooch.retrieve(f'https://github.com/nirx/fOLD-public/raw/master/Supplementary/{fname}', None, fname, path=os.getcwd())  # noqa
+raw_spec = use['h'].copy()
+raw_spec.pick_channels(raw_spec.ch_names[::2])
+specs = mne_nirs.io.fold_channel_specificity(raw_spec, fold_files, 'Brodmann')
 for si, spec in enumerate(specs, 1):
     spec['Channel'] = si
     spec['negspec'] = -spec['Specificity']
 specs = pd.concat(specs, ignore_index=True)
-specs.drop(['Source', 'Detector', 'Distance (mm)', 'brainSens', 'X (mm)', 'Y (mm)', 'Z (mm)'], axis=1, inplace=True)
+specs.drop(['Source', 'Detector', 'Distance (mm)', 'brainSens',
+            'X (mm)', 'Y (mm)', 'Z (mm)'], axis=1, inplace=True)
 specs.sort_values(['Channel', 'negspec'], inplace=True)
 specs.drop('negspec', axis=1, inplace=True)
 specs.reset_index(inplace=True, drop=True)
